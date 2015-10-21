@@ -9,14 +9,20 @@ ENV DEBCONF_NONINTERACTIVE_SEEN true
 RUN apt-get update && apt-get -y install software-properties-common unzip
 
 # Install Java.
-RUN \
-  echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
-  add-apt-repository -y ppa:webupd8team/java && \
-  apt-get update && \
-  apt-get install -y oracle-java8-installer
+RUN apt-get update \
+    && apt-get install -y wget openssl ca-certificates \
+    && cd /tmp \
+    && wget -qO jdk8.tar.gz \
+       --header "Cookie: oraclelicense=accept-securebackup-cookie" \
+       http://download.oracle.com/otn-pub/java/jdk/8u65-b17/jdk-8u65-linux-x64.tar.gz \
+    && tar xzf jdk8.tar.gz -C /opt \
+    && mv /opt/jdk* /opt/java \
+    && rm /tmp/jdk8.tar.gz \
+    && update-alternatives --install /usr/bin/java java /opt/java/bin/java 100 \
+    && update-alternatives --install /usr/bin/javac javac /opt/java/bin/javac 100
 
 # Define commonly used JAVA_HOME variable
-ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
+ENV JAVA_HOME /opt/java
 
 # Gradle
 ENV GRADLE_VERSION 2.7
